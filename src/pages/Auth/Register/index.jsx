@@ -5,10 +5,11 @@ import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 const initialState = { name: "", email: "", password: "", confirmPassword: "" };
 
 const Register = () => {
+
   const [state, setState] = useState(initialState);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -16,21 +17,17 @@ const Register = () => {
   const handleChange = (e) => setState(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleRegister = (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
 
     let { name, email, password, confirmPassword } = state;
 
     name = name.trim();
     if (name.length < 3) { return window.toastify("Please enter a valid name", "error"); }
-
     if (!window.isValidEmail(email)) { return window.toastify("Please enter a valid email address", "error"); }
-
     if (password.length < 6) { return window.toastify("Please enter a strong password", "error"); }
-
     if (password !== confirmPassword) { return window.toastify("Passwords do not match", "error"); }
 
     const users = JSON.parse(localStorage.getItem("users")) || [];
-
     const isUserExist = users.some(user => user.email.toLowerCase() === email.toLowerCase());
 
     if (isUserExist) { return window.toastify("This email is already registered! Please Login.", "error"); }
@@ -38,67 +35,52 @@ const Register = () => {
     setIsProcessing(true);
 
     setTimeout(() => {
-
       const newUser = { id: window.getRandomId(), name, email, password };
       users.push(newUser);
-
       localStorage.setItem("users", JSON.stringify(users));
 
       setIsProcessing(false);
-
       window.toastify("User Registered Successfully", "success");
 
       setState(initialState);
-      navigate("/auth/login")
 
       setShowPassword(false);
       setShowConfirmPassword(false);
-
+      
+      navigate("/auth/login");
     }, 2000);
+
   };
 
   return (
-
     <main>
 
       <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
-
-        <form className="register-card">
-
+        
+        <form className="register-card" onSubmit={handleRegister}>
           <div className="register-image">
             <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bGFwdG9wfGVufDB8fDB8fHww" alt="register" />
           </div>
 
           <div className="register-form">
-            <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>
-              Saylani Welfare
-            </h2>
-
-            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>
-              Create your account
-            </p>
+            <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>Saylani Welfare</h2>
+            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>Create your account</p>
 
             <label htmlFor="name">Name</label>
             <div className="input-box">
-              <span className="icon-span">
-                <FaUser />
-              </span>
+              <span className="icon-span"><FaUser /></span>
               <input type="text" id="name" name="name" placeholder="Enter your name" value={state.name} onChange={handleChange} />
             </div>
 
             <label htmlFor="email">Email</label>
             <div className="input-box">
-              <span className="icon-span">
-                <FaEnvelope />
-              </span>
+              <span className="icon-span"><FaEnvelope /></span>
               <input type="email" id="email" name="email" placeholder="Enter your email" value={state.email} onChange={handleChange} />
             </div>
 
             <label htmlFor="password">Password</label>
             <div className="input-box relative-box">
-              <span className="icon-span">
-                <FaLock />
-              </span>
+              <span className="icon-span"><FaLock /></span>
               <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="Enter strong password" value={state.password} onChange={handleChange} style={{ paddingRight: "45px" }} />
               <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -107,28 +89,22 @@ const Register = () => {
 
             <label htmlFor="confirmPassword">Confirm Password</label>
             <div className="input-box relative-box">
-              <span className="icon-span">
-                <FaLock />
-              </span>
+              <span className="icon-span"><FaLock /></span>
               <input type={showConfirmPassword ? "text" : "password"} id="confirmPassword" name="confirmPassword" placeholder="Enter confirm password" value={state.confirmPassword} onChange={handleChange} style={{ paddingRight: "45px" }} />
               <button type="button" className="eye-btn" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
-            <button type="submit" className="register-btn" disabled={isProcessing} onClick={handleRegister}>
+            <button type="submit" className="register-btn" disabled={isProcessing}>
               {isProcessing ? "Processing..." : "Register"}
             </button>
 
             <p style={{ textAlign: "center", marginTop: "15px", marginBottom: "0" }}>
               Already have account?{" "}
-              <Link to="/auth/login" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>
-                Login
-              </Link>
+              <Link to="/auth/login" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>Login</Link>
             </p>
-
           </div>
-
         </form>
 
         <style>{`

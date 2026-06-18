@@ -1,35 +1,47 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react";
 
-const Auth = createContext()
+const Auth = createContext();
 
-const initialState = { isAuth: false, user: {} }
+const initialState = { isAuth: false, user: {} };
 
 const AuthContext = ({ children }) => {
 
-    const [state, setState] = useState(initialState)
-    const [isAppLoading, setIsAppLoading] = useState(true)
+  const [state, setState] = useState(initialState);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
-    const readProfile = () => {
-        const user = { uid: "123", email: "abdulwahab209.dev@gmail.com", name: "wahab" }
-        setState({ isAuth: true, user })
-        setTimeout(() => {
-            setIsAppLoading(false)
-        }, 2000)
+  const readProfile = () => {
+
+    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+    
+    if (storedUser) {
+      setState({ isAuth: true, user: storedUser });
     }
+    
+    setTimeout(() => {
+      setIsAppLoading(false);
+    }, 2000);
+  };
 
-    useEffect(() => { readProfile() }, [])
+  useEffect(() => {
+    readProfile();
+  }, []);
 
-    const handleLogout = () => {
-        setState(initialState)
+const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    setState(initialState);
+    
+    if (typeof window.toastify === "function") {
+      window.toastify("Logged out successfully", "success");
     }
+  };
 
-    return (
-        <Auth.Provider value={{ ...state, isAppLoading, handleLogout }}>
-            {children}
-        </Auth.Provider>
-    )
-}
+  return (
+    <Auth.Provider value={{ ...state, isAppLoading, handleLogout, dispatch: setState }}>
+      {children}
+    </Auth.Provider>
+  );
+};
 
-export default AuthContext
+export default AuthContext;
 
-export const useAuth = () => useContext(Auth)
+export const useAuth = () => useContext(Auth);

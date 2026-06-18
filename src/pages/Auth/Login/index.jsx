@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "@/context/Auth";
 
 const initialState = { email: "", password: "" };
 
 const Login = () => {
 
+  const { dispatch } = useAuth();
+
   const [state, setState] = useState(initialState);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,7 +29,6 @@ const Login = () => {
     setIsProcessing(true);
 
     setTimeout(() => {
-
       const users = JSON.parse(localStorage.getItem("users")) || [];
 
       const userFound = users.find(user => user.email.toLowerCase() === email.toLowerCase().trim() && user.password === password);
@@ -34,10 +36,14 @@ const Login = () => {
       setIsProcessing(false);
 
       if (userFound) {
+        localStorage.setItem("currentUser", JSON.stringify(userFound));
+        
+        dispatch({ isAuth: true, user: userFound });
+        
         window.toastify(`Welcome back, ${userFound.name}!`, "success");
-        navigate("/dashboard")
         setState(initialState);
         setShowPassword(false);
+        navigate("/dashboard");
       } else {
         window.toastify("Invalid email or password! Please try again.", "error");
       }
@@ -45,39 +51,28 @@ const Login = () => {
   };
 
   return (
-
     <main>
 
-      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px", }}>
-
+      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
+       
         <form className="login-card" onSubmit={handleLogin}>
-
           <div className="login-image">
             <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="login" />
           </div>
 
           <div className="login-form">
-            <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>
-              Saylani Welfare
-            </h2>
-
-            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>
-              Login to your account
-            </p>
+            <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>Saylani Welfare</h2>
+            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>Login to your account</p>
 
             <label htmlFor="email">Email</label>
             <div className="input-box">
-              <span className="icon-span">
-                <FaEnvelope />
-              </span>
+              <span className="icon-span"><FaEnvelope /></span>
               <input type="email" id="email" name="email" placeholder="Enter email" value={state.email} onChange={handleChange} />
             </div>
 
             <label htmlFor="password">Password</label>
             <div className="input-box relative-box">
-              <span className="icon-span">
-                <FaLock />
-              </span>
+              <span className="icon-span"><FaLock /></span>
               <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="Enter password" value={state.password} onChange={handleChange} style={{ paddingRight: "45px" }} />
               <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -90,11 +85,11 @@ const Login = () => {
 
             <p style={{ textAlign: "center", marginTop: "15px", marginBottom: "0" }}>
               Don’t have account?{" "}
-              <Link to="/auth/register" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>
-                Register
-              </Link>
+              <Link to="/auth/register" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>Register</Link>
             </p>
+            
           </div>
+          
         </form>
 
         <style>{`
@@ -111,23 +106,12 @@ const Login = () => {
           .eye-btn:hover { color: #198754;}
           .login-btn { background: #198754; color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; transition: background 0.2s ease;}
           .login-btn:hover { background: #146c43;}
-          .login-btn:disabled { background: #a3cfbb;cursor: not-allowed;}
-
-          /* ✅ MOBILE RESPONSIVE */
-          @media (max-width: 768px) {
-            .login-card { flex-direction: column; height: auto; max-width: 450px;}
-            .login-image { width: 100%; height: 200px;}
-            .login-form { width: 100%; padding: 25px;}
-          }
-        `}
-        </style>
-
+          .login-btn:disabled { background: #a3cfbb; cursor: not-allowed;}
+          @media (max-width: 768px) { .login-card { flex-direction: column; height: auto; max-width: 450px;} .login-image { width: 100%; height: 200px;} .login-form { width: 100%; padding: 25px;} }
+        `}</style>
       </div>
-
     </main>
-
   );
-
 };
 
 export default Login;

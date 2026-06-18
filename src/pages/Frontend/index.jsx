@@ -6,6 +6,7 @@ import Services from './Services'
 import Contact from './Contact'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import PageNotFound from '@/components/Misc/PageNotFound'
 
 const Frontend = () => {
   return (
@@ -16,6 +17,7 @@ const Frontend = () => {
         <Route path='/about' element={<About/>}/>
         <Route path='/services' element={<Services/>}/>
         <Route path='contact' element={<Contact/>}/>
+        <Route path='/*' element={<PageNotFound/>}/>
     </Routes>
     <Footer/>
     </>

@@ -1,147 +1,133 @@
-import { Link } from "react-router-dom";
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+
+const initialState = { email: "", password: "" };
 
 const Login = () => {
-    return (
-        <main>
-            <div
-                style={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "#f4f6f8",
-                    padding: "20px",
-                }}
-            >
-                {/* MAIN CARD */}
-                <div className="login-card">
-                    {/* IMAGE SIDE */}
-                    <div className="login-image">
-                        <img
-                            src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80"
-                            alt="login"
-                        />
-                    </div>
 
-                    {/* FORM SIDE */}
-                    <div className="login-form">
-                        <h2 style={{ color: "#198754", textAlign: "center" }}>
-                            Saylani Welfare
-                        </h2>
+  const [state, setState] = useState(initialState);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-                        <p style={{ textAlign: "center", color: "#666" }}>
-                            Login to your account
-                        </p>
+  const navigate = useNavigate()
 
-                        {/* EMAIL */}
-                        <label>Email</label>
-                        <div className="input-box">
-                            <span>
-                                <FaEnvelope />
-                            </span>
-                            <input type="email" placeholder="Enter email" />
-                        </div>
+  const [showPassword, setShowPassword] = useState(false);
 
-                        {/* PASSWORD */}
-                        <label>Password</label>
-                        <div className="input-box">
-                            <span>
-                                <FaLock />
-                            </span>
-                            <input type="password" placeholder="Enter password" />
-                        </div>
+  const handleChange = (e) => setState(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-                        <button className="login-btn">Login</button>
+  const handleLogin = (e) => {
+    e.preventDefault();
 
-                        <p style={{ textAlign: "center", marginTop: "15px" }}>
-                            Don’t have account?{" "}
-                            <Link to="/auth/register" style={{ color: "#198754" }}>
-                                Register
-                            </Link>
-                        </p>
-                    </div>
-                </div>
+    const { email, password } = state;
 
-                {/* CSS */}
-                <style>{`
-        .login-card {
-          width: 100%;
-          max-width: 900px;
-          height: 500px;
-          display: flex;
-          border-radius: 15px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-          background: #fff;
-        }
+    if (!email) { return window.toastify("Please enter your email", "error"); }
+    if (!password) { return window.toastify("Please enter your password", "error"); }
 
-        .login-image {
-          width: 50%;
-          height: 100%;
-        }
+    setIsProcessing(true);
 
-        .login-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+    setTimeout(() => {
 
-        .login-form {
-          width: 50%;
-          padding: 40px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
+      const users = JSON.parse(localStorage.getItem("users")) || [];
 
-        .input-box {
-          display: flex;
-          margin-bottom: 15px;
-        }
+      const userFound = users.find(user => user.email.toLowerCase() === email.toLowerCase().trim() && user.password === password);
 
-        .input-box span {
-          padding: 10px;
-          background: #eee;
-        }
+      setIsProcessing(false);
 
-        .input-box input {
-          flex: 1;
-          padding: 10px;
-          border: 1px solid #ddd;
-          outline: none;
-        }
+      if (userFound) {
+        window.toastify(`Welcome back, ${userFound.name}!`, "success");
+        navigate("/dashboard")
+        setState(initialState);
+        setShowPassword(false);
+      } else {
+        window.toastify("Invalid email or password! Please try again.", "error");
+      }
+    }, 2000);
+  };
 
-        .login-btn {
-          background: #198754;
-          color: #fff;
-          border: none;
-          padding: 10px;
-          border-radius: 5px;
-          cursor: pointer;
-        }
+  return (
 
-        /* ✅ MOBILE RESPONSIVE */
-        @media (max-width: 600px) {
-          .login-card {
-            flex-direction: column;
-            height: auto;
-          }
+    <main>
 
-          .login-image {
-            width: 100%;
-            height: 220px;
-          }
+      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px", }}>
 
-          .login-form {
-            width: 100%;
-            padding: 20px;
-          }
-        }
-      `}</style>
+        <form className="login-card" onSubmit={handleLogin}>
+
+          <div className="login-image">
+            <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="login" />
+          </div>
+
+          <div className="login-form">
+            <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>
+              Saylani Welfare
+            </h2>
+
+            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>
+              Login to your account
+            </p>
+
+            <label htmlFor="email">Email</label>
+            <div className="input-box">
+              <span className="icon-span">
+                <FaEnvelope />
+              </span>
+              <input type="email" id="email" name="email" placeholder="Enter email" value={state.email} onChange={handleChange} />
             </div>
-        </main>
-    );
+
+            <label htmlFor="password">Password</label>
+            <div className="input-box relative-box">
+              <span className="icon-span">
+                <FaLock />
+              </span>
+              <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="Enter password" value={state.password} onChange={handleChange} style={{ paddingRight: "45px" }} />
+              <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+
+            <button type="submit" className="login-btn" disabled={isProcessing}>
+              {isProcessing ? "Processing..." : "Login"}
+            </button>
+
+            <p style={{ textAlign: "center", marginTop: "15px", marginBottom: "0" }}>
+              Don’t have account?{" "}
+              <Link to="/auth/register" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
+
+        <style>{`
+          .login-card { width: 100%; max-width: 900px; height: 500px; display: flex; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); background: #fff;}
+          .login-image { width: 50%; height: 100%;}
+          .login-image img { width: 100%; height: 100%; object-fit: cover;}
+          .login-form { width: 50%; padding: 40px; display: flex; flex-direction: column; justify-content: center;}
+          .login-form label { font-size: 0.9rem; font-weight: 600; color: #444; margin-bottom: 4px;}
+          .input-box { display: flex; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fff;}
+          .relative-box { position: relative;}
+          .icon-span { padding: 10px 14px; background: #f8f9fa; border-right: 1px solid #ddd; color: #666; display: flex; align-items: center; justify-content: center;}
+          .input-box input { flex: 1; padding: 10px 12px; border: none; outline: none; font-size: 0.95rem;}
+          .eye-btn { position: absolute; right: 0; top: 0; height: 100%; width: 45px; background: none; border: none; cursor: pointer; color: #777; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: color 0.2s ease;}
+          .eye-btn:hover { color: #198754;}
+          .login-btn { background: #198754; color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; transition: background 0.2s ease;}
+          .login-btn:hover { background: #146c43;}
+          .login-btn:disabled { background: #a3cfbb;cursor: not-allowed;}
+
+          /* ✅ MOBILE RESPONSIVE */
+          @media (max-width: 768px) {
+            .login-card { flex-direction: column; height: auto; max-width: 450px;}
+            .login-image { width: 100%; height: 200px;}
+            .login-form { width: 100%; padding: 25px;}
+          }
+        `}
+        </style>
+
+      </div>
+
+    </main>
+
+  );
+
 };
 
 export default Login;

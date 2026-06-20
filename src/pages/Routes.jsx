@@ -22,7 +22,7 @@ const Index = () => {
             <Routes>
                 <Route path='/*' element={<Frontend/>}/>
                 <Route path='/auth/*' element={!isAuth ? <Auth/> : <Navigate to="/dashboard"/>}/>
-                <Route path='/dashboard' element={<ProtectRoute Component={Dashboard}/>}/>
+                <Route path='/dashboard/*' element={<ProtectRoute Component={Dashboard}/>}/>
                 <Route path='*' element={<PageNotFound/>}/>
             </Routes>
         </>

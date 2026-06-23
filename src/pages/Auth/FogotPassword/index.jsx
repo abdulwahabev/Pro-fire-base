@@ -59,7 +59,7 @@ const ForgotPassword = () => {
         
         <form className="forgot-card" onSubmit={handleResetPassword}>
           <div className="forgot-image">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1400&q=80" alt="forgot password" />
+            <img src="https://images.unsplash.com/photo-1600695268275-1a6468700bd5?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="forgot password" />
           </div>
 
           <div className="forgot-form">

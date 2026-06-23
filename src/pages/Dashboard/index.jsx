@@ -19,11 +19,9 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       
-      {/* 1. سائیڈ بار سلائیڈر */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <h2>Saylani Welfare</h2>
-          <p>Welcome, <span>{user?.name || "User"}</span></p>
         </div>
         
         <nav className="sidebar-menu">
@@ -51,7 +49,6 @@ const Dashboard = () => {
         </button>
       </aside>
 
-      {/* 2. مین باڈی کنٹینٹ */}
       <main className="main-content">
         <header className="topbar">
           <div className="user-info">
@@ -62,7 +59,6 @@ const Dashboard = () => {
 
         <div className="content-body">
           
-          {/* 🔹 ٹاپ نیویگیشن بار (صرف ٹوڈو سیکشنز میں نظر آئے گی) */}
           {isTodoSection && (
             <div className="d-flex flex-wrap gap-2 mb-4 p-3 bg-white rounded-3 shadow-sm align-items-center justify-content-between fade-in">
               <div className="d-flex gap-2">
@@ -79,7 +75,7 @@ const Dashboard = () => {
                   <FaTasks className="text-success" /> Go to Dashboard Home
                 </button>
                 <button className="btn btn-sm btn-dark fw-semibold" onClick={() => navigate("/")}>
-                  <FaHome /> Main Website (/)
+                  <FaHome /> Main Website
                 </button>
               </div>
             </div>

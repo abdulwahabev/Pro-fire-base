@@ -77,7 +77,7 @@ const Login = () => {
               <Link
               to="/auth/forgot-password"
               style={{ color: "#198754", marginLeft:"5px", fontSize: "0.85rem", textDecoration: "none", fontWeight: "500" }}
-              onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+              onMouseEnter={(e) => e.target.style.textDecoration = "none"}
               onMouseLeave={(e) => e.target.style.textDecoration = "none"}
             >
               Reset Password

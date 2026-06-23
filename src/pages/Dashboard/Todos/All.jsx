@@ -110,7 +110,6 @@ const All = () => {
         </div>
       )}
 
-      {/* 🛠️ فکسڈ اوورلیے ماڈل (یہ اب ہر چیز کے اوپر رینڈر ہوگا) */}
       {editingTodo && (
         <div 
           style={{ 
@@ -123,8 +122,8 @@ const All = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 99999, /* 👈 انتہائی ہائی انڈیکس تاکہ ٹیبل کے اوپر رہے */
-            backdropFilter: "blur(4px)" /* پیچھے کی سکرین کو تھوڑا بلر کرنے کے لیے */
+            zIndex: 99999, 
+            backdropFilter: "blur(4px)" 
           }}
         >
           <div 
@@ -136,7 +135,7 @@ const All = () => {
               zIndex: 100000 
             }}
           >
-            {/* ماڈل کا ہیڈر */}
+
             <div className="card-header bg-success text-white d-flex justify-content-between align-items-center py-3 border-0">
               <h5 className="card-title fw-bold m-0 text-white">Edit Task Assignment</h5>
               <button 
@@ -149,7 +148,6 @@ const All = () => {
               </button>
             </div>
             
-            {/* ماڈل کا فارم */}
             <form onSubmit={handleEditSave} className="card-body p-4 bg-white rounded-bottom-3" style={{ backgroundColor: "#ffffff" }}>
               <div className="mb-3">
                 <label className="form-label fw-semibold text-dark">Task Title</label>

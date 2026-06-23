@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "@/context/Auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
 const initialState = { email: "", password: "" };
 
@@ -28,33 +30,42 @@ const Login = () => {
 
     setIsProcessing(true);
 
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+    // Firebase Sign In
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const firebaseUser = userCredential.user;
 
-      const userFound = users.find(user => user.email.toLowerCase() === email.toLowerCase().trim() && user.password === password);
+        window.toastify("Logged In Successfully", "success");
 
-      setIsProcessing(false);
+        // Jaise pehle pure object pass ho raha tha, ab Firebase user object pass hoga
+        dispatch({ isAuth: true, user: firebaseUser });
 
-      if (userFound) {
-        localStorage.setItem("currentUser", JSON.stringify(userFound));
-        
-        dispatch({ isAuth: true, user: userFound });
-        
-        window.toastify(`Welcome back, ${userFound.name}!`, "success");
+        // State reset aur guaranteed navigation
         setState(initialState);
         setShowPassword(false);
+
+        // Yeh line user ko dashboard par le jayegi jaise localStorage mein le ja rahi thi
         navigate("/dashboard");
-      } else {
-        window.toastify("Invalid email or password! Please try again.", "error");
-      }
-    }, 2000);
+      })
+      .catch((error) => {
+        console.error("Login Error: ", error);
+
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          window.toastify("Invalid email or password! Please try again.", "error");
+        } else {
+          window.toastify("Something went wrong during login", "error");
+        }
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
   };
 
   return (
     <main>
 
       <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
-       
+
         <form className="login-card" onSubmit={handleLogin}>
           <div className="login-image">
             <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="login" />
@@ -62,7 +73,15 @@ const Login = () => {
 
           <div className="login-form">
             <h2 style={{ color: "#198754", textAlign: "center", margin: "0 0 5px 0" }}>Saylani Welfare</h2>
-            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>Login to your account</p>
+            <p style={{ textAlign: "center", color: "#666", marginBottom: "20px" }}>Forgot Password
+              <Link
+              to="/auth/forgot-password"
+              style={{ color: "#198754", marginLeft:"5px", fontSize: "0.85rem", textDecoration: "none", fontWeight: "500" }}
+              onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+              onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+            >
+              Reset Password
+            </Link></p>
 
             <label htmlFor="email">Email</label>
             <div className="input-box">
@@ -87,9 +106,9 @@ const Login = () => {
               Don’t have account?{" "}
               <Link to="/auth/register" style={{ color: "#198754", fontWeight: "600", textDecoration: "none" }}>Register</Link>
             </p>
-            
+
           </div>
-          
+
         </form>
 
         <style>{`

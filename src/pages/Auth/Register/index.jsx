@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../config/firebase"
 
 const initialState = { name: "", email: "", password: "", confirmPassword: "" };
 
@@ -17,46 +19,45 @@ const Register = () => {
   const handleChange = (e) => setState(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleRegister = (e) => {
-    e.preventDefault(); 
-
-    let { name, email, password, confirmPassword } = state;
-
-    name = name.trim();
-    if (name.length < 3) { return window.toastify("Please enter a valid name", "error"); }
+    e.preventDefault();
+  
+    const { email, password, confirmPassword } = state;
+  
     if (!window.isValidEmail(email)) { return window.toastify("Please enter a valid email address", "error"); }
     if (password.length < 6) { return window.toastify("Please enter a strong password", "error"); }
     if (password !== confirmPassword) { return window.toastify("Passwords do not match", "error"); }
-
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const isUserExist = users.some(user => user.email.toLowerCase() === email.toLowerCase());
-
-    if (isUserExist) { return window.toastify("This email is already registered! Please Login.", "error"); }
-
+  
     setIsProcessing(true);
-
-    setTimeout(() => {
-      const newUser = { id: window.getRandomId(), name, email, password };
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      setIsProcessing(false);
-      window.toastify("User Registered Successfully", "success");
-
-      setState(initialState);
-
-      setShowPassword(false);
-      setShowConfirmPassword(false);
+  
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        window.toastify("User Registered Successfully", "success");
+        
+        setState(initialState);
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        navigate("/auth/login");
+      })
+      .catch((error) => {
+        console.error("Registration Error: ", error);
+        
+        if (error.code === 'auth/email-already-in-use') {
+          window.toastify("This email is already registered! Please Login.", "error");
+        } else {
+          window.toastify("Something went wrong during registration", "error");
+        }
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
       
-      navigate("/auth/login");
-    }, 2000);
-
   };
 
   return (
     <main>
 
       <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
-        
+
         <form className="register-card" onSubmit={handleRegister}>
           <div className="register-image">
             <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bGFwdG9wfGVufDB8fDB8fHww" alt="register" />

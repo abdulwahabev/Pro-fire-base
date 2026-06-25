@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/Auth";
-import { FaCheckCircle, FaHeading, FaCalendarAlt, FaListUl, FaRegFileAlt } from "react-icons/fa";
+import { FaCheckCircle, FaHeading, FaCalendarAlt, FaListUl } from "react-icons/fa";
+import { firestore } from "../../../config/firebase"; 
+import { collection, addDoc } from "firebase/firestore";
 
 const initialState = { title: "", dueDate: "", description: "", priority: "Medium" };
 
@@ -14,7 +16,7 @@ const Add = () => {
     setState(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { title, dueDate, description, priority } = state;
 
@@ -23,7 +25,6 @@ const Add = () => {
     }
 
     const newTodo = {
-      id: Date.now().toString(),
       title: title.trim(),
       dueDate,
       description: description.trim(),
@@ -32,13 +33,16 @@ const Add = () => {
       createdBy: user?.email || "anonymous"
     };
 
-    const currentTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    currentTodos.push(newTodo);
-    localStorage.setItem("todos", JSON.stringify(currentTodos));
+    try {
+      await addDoc(collection(firestore, "todos"), newTodo);
 
-    if (window.toastify) window.toastify("Task Added Successfully!", "success");
-    setState(initialState);
-    navigate("/dashboard/todos/all"); // 👈 ایڈ ہونے کے بعد ٹیبل پر نیویگیٹ
+      if (window.toastify) window.toastify("Task Added Successfully!", "success");
+      setState(initialState);
+      navigate("/dashboard/todos/all"); 
+    } catch (error) {
+      console.error("Error adding todo: ", error);
+      if (window.toastify) window.toastify("Failed to add task", "error");
+    }
   };
 
   return (

@@ -4,16 +4,16 @@ import { auth } from "../config/firebase";
 
 const Auth = createContext();
 
-const initialState = { isAuth: false, user: {} };
+const initialState = { isAuth: false, user: null };
 
 const AuthContext = ({ children }) => {
   const [state, setState] = useState(initialState);
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setState({ isAuth: true, user: user });
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setState({ isAuth: true, user: firebaseUser });
       } else {
         setState(initialState);
       }
@@ -40,11 +40,18 @@ const AuthContext = ({ children }) => {
 
   return (
     <Auth.Provider value={{ ...state, isAppLoading, handleLogout, dispatch: setState }}>
-      {children}
+      {!isAppLoading ? (
+        children
+      ) : (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+          <div className="spinner-border text-success" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
     </Auth.Provider>
   );
 };
 
 export default AuthContext;
-
 export const useAuth = () => useContext(Auth);

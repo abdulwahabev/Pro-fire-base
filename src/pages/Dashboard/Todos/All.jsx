@@ -1,48 +1,76 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/Auth";
 import { FaEdit, FaTrash, FaExclamationTriangle, FaTimes, FaSave } from "react-icons/fa";
+import { firestore } from "../../../config/firebase"; 
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
 const All = () => {
-  const { user } = useAuth();
+  const { user, isAppLoading } = useAuth(); // Context se loading check bhi nikal liya
   const [todos, setTodos] = useState([]);
   const [editingTodo, setEditingTodo] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(true); // 👈 Nayi state sirf todos fetch karne ke loader ke liye
 
-  const loadTodos = () => {
-    const allTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    const myTodos = allTodos.filter(todo => todo.createdBy === user?.email);
-    setTodos(myTodos);
+  const loadTodos = async () => {
+    if (!user?.email) {
+      setIsDataLoading(false);
+      return;
+    }
+    try {
+      setIsDataLoading(true); // Fetch shuru hone par loader ON
+      const q = query(collection(firestore, "todos"), where("createdBy", "==", user.email));
+      const querySnapshot = await getDocs(q);
+      const myTodos = [];
+      querySnapshot.forEach((doc) => {
+        myTodos.push({ id: doc.id, ...doc.data() });
+      });
+      setTodos(myTodos);
+    } catch (error) {
+      console.error("Error fetching todos: ", error);
+    } finally {
+      setIsDataLoading(false); // Fetch khatam hone par loader OFF
+    }
   };
 
   useEffect(() => {
-    if (user?.email) {
-      loadTodos();
+    // Jab tak main app ya firebase auth load ho raha hai, tab tak fetch na karein
+    if (!isAppLoading) {
+      if (user?.email) {
+        loadTodos();
+      } else {
+        setIsDataLoading(false);
+      }
     }
-  }, [user]);
+  }, [user, isAppLoading]);
 
-  const handleDelete = (id) => {
-    const allTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    const updatedTodos = allTodos.filter(todo => todo.id !== id);
-    
-    localStorage.setItem("todos", JSON.stringify(updatedTodos));
-    setTodos(updatedTodos.filter(todo => todo.createdBy === user?.email));
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(firestore, "todos", id));
+      setTodos(prev => prev.filter(todo => todo.id !== id));
 
-    if (window.toastify) {
-      window.toastify("Task Deleted Successfully!", "success");
+      if (window.toastify) {
+        window.toastify("Task Deleted Successfully!", "success");
+      }
+    } catch (error) {
+      console.error("Error deleting todo: ", error);
     }
   };
 
-  const handleEditSave = (e) => {
+  const handleEditSave = async (e) => {
     e.preventDefault();
-    const allTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    const updatedTodos = allTodos.map(todo => todo.id === editingTodo.id ? editingTodo : todo);
-    
-    localStorage.setItem("todos", JSON.stringify(updatedTodos));
-    setEditingTodo(null);
-    
-    if (window.toastify) {
-      window.toastify("Task Updated Successfully!", "success");
+    try {
+      const todoRef = doc(firestore, "todos", editingTodo.id);
+      const { id, ...updatedData } = editingTodo;
+      await updateDoc(todoRef, updatedData);
+
+      setEditingTodo(null);
+      
+      if (window.toastify) {
+        window.toastify("Task Updated Successfully!", "success");
+      }
+      loadTodos(); 
+    } catch (error) {
+      console.error("Error updating todo: ", error);
     }
-    loadTodos();
   };
 
   const getPriorityClass = (priority) => {
@@ -58,7 +86,14 @@ const All = () => {
         <p className="text-muted small">Edit, delete, and monitor your records in real-time.</p>
       </div>
 
-      {todos.length === 0 ? (
+      {/* 👈 Pehle check karega ke data load ho raha hai ya nahi */}
+      {isDataLoading ? (
+        <div className="d-flex justify-content-center align-items-center py-5">
+          <div className="spinner-border text-success" role="status">
+            <span className="visually-hidden">Loading Tasks...</span>
+          </div>
+        </div>
+      ) : todos.length === 0 ? (
         <div className="card border-0 shadow-sm text-center p-5 rounded-3">
           <div className="text-muted mb-3"><FaExclamationTriangle size={40} className="text-warning" /></div>
           <h5 className="fw-bold text-secondary">No Tasks Records Available</h5>
@@ -113,42 +148,26 @@ const All = () => {
       {editingTodo && (
         <div 
           style={{ 
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.7)", 
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 99999, 
-            backdropFilter: "blur(4px)" 
+            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.7)", display: "flex", alignItems: "center",
+            justifyContent: "center", zIndex: 99999, backdropFilter: "blur(4px)" 
           }}
         >
           <div 
             className="card border-0 shadow-lg rounded-3 w-100 m-3" 
-            style={{ 
-              maxWidth: "500px", 
-              backgroundColor: "#ffffff", 
-              boxShadow: "0px 10px 30px rgba(0,0,0,0.3)",
-              zIndex: 100000 
-            }}
+            style={{ maxWidth: "500px", backgroundColor: "#ffffff", boxShadow: "0px 10px 30px rgba(0,0,0,0.3)", zIndex: 100000 }}
           >
-
             <div className="card-header bg-success text-white d-flex justify-content-between align-items-center py-3 border-0">
               <h5 className="card-title fw-bold m-0 text-white">Edit Task Assignment</h5>
               <button 
-                type="button" 
-                className="btn text-white p-0 border-0 m-0 shadow-none" 
-                onClick={() => setEditingTodo(null)}
-                style={{ cursor: "pointer", background: "none" }}
+                type="button" className="btn text-white p-0 border-0 m-0 shadow-none" 
+                onClick={() => setEditingTodo(null)} style={{ cursor: "pointer", background: "none" }}
               >
                 <FaTimes size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleEditSave} className="card-body p-4 bg-white rounded-bottom-3" style={{ backgroundColor: "#ffffff" }}>
+            <form onSubmit={handleEditSave} className="card-body p-4 bg-white rounded-bottom-3">
               <div className="mb-3">
                 <label className="form-label fw-semibold text-dark">Task Title</label>
                 <input type="text" className="form-control" value={editingTodo.title} onChange={e => setEditingTodo(prev => ({ ...prev, title: e.target.value }))} required />
